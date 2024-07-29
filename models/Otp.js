@@ -18,4 +18,22 @@ const OtpSchema = new mongoose({
     }
 })
 
+// function to send mail
+async function sendVerificationEmail(email,otp){
+    try{
+        const mailResponse = await mailSender(email,'verification mail from Edu-Notion',otp);
+        console.log("Email sent successfully ",mailResponse);
+    }
+    catch(error){
+        console.log('Error occured while sending mail for verification: ',error);
+        throw error;
+    }
+}
+
+// pre middleware that executes before createing entry into db
+OtpSchema.pre("save",async (next)=>{
+    await sendVerificationEmail(this.email,this.otp);
+    next();
+})
+
 module.exports= mongoose.model('OTP',OtpSchema);
