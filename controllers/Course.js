@@ -1,5 +1,5 @@
 const Course = require('../models/Course');
-const Tag = require('../models/Tags');
+const Category = require('../models/Category');
 const User = require('../models/User');
 const {uploadImageToCloudinary} =require('../utils/imageUploader');
 require('dotenv').config();
@@ -9,11 +9,11 @@ require('dotenv').config();
 exports.createCourse = async (req,res)=>{
     try {
         // fetch data from request body
-        const {courseName,courseDescription,whatYouWillLearn,price,tag} = require('../models/Course');
+        const {courseName,courseDescription,whatYouWillLearn,price,category} = require('../models/Course');
         const thumbnail = req.files.thumbnailImage;
 
         //validation 
-        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !tag){
+        if(!courseName || !courseDescription || !whatYouWillLearn || !price || !category){
             return res.status(400).json({
                 success:false,
                 message:'All fields are required'
@@ -32,8 +32,8 @@ exports.createCourse = async (req,res)=>{
         }
 
         // check for tag
-        const tagDetails = Tag.findById(tag)
-        if(!tagDetails){
+        const categoryDetails = Category.findById(tag)
+        if(!categoryDetails){
             return res.status(404).json({
                 success:false,
                 message:'tag details not found'
@@ -50,7 +50,7 @@ exports.createCourse = async (req,res)=>{
             courseDescription,
             price,
             instructor:instructorDetails._id,
-            tag:tagDetails._id,
+            tag:categoryDetails._id,
             whatYouWillLearn,
             thumbnail:thumbnailImage.secure_url
         })
