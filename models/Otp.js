@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const emailTemplate= require('../mail/templates/emailVerificationTemplate')
 
 const OtpSchema = new mongoose({
     email:{
@@ -21,8 +22,10 @@ const OtpSchema = new mongoose({
 // function to send mail
 async function sendVerificationEmail(email,otp){
     try{
-        const mailResponse = await mailSender(email,'verification mail from Edu-Notion',otp);
-        console.log("Email sent successfully ",mailResponse);
+        const mailResponse = await mailSender(email,'verification mail from Edu-Notion', emailTemplate(otp));
+        
+       
+        console.log('Email sent successfully: ',mailResponse)
     }
     catch(error){
         console.log('Error occured while sending mail for verification: ',error);
@@ -32,7 +35,11 @@ async function sendVerificationEmail(email,otp){
 
 // pre middleware that executes before createing entry into db
 OtpSchema.pre("save",async (next)=>{
+    console.log("New document saved to database");
+    if(this.isNew){
     await sendVerificationEmail(this.email,this.otp);
+
+    }
     next();
 })
 

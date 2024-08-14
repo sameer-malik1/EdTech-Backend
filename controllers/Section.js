@@ -22,7 +22,13 @@ exports.createSection = async (req,res)=>{
         // update the section into Couse schema
         const updatedCourseDetail = await Course.findByIdAndUpdate({_id:courseId},{$push:{
             courseContent:newSection._id
-        }},{new:true}); //ToDo: popuate the section and sub-section both in the updatedCourseDetails
+        }},{new:true}).populate({
+            path:"courseContent",
+            populate:{
+                path:"subSection"
+            },
+        })
+        .exec(); //ToDo: explore about path syntax to populate
         // return response
         res.status(200).json({
             success:false,

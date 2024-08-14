@@ -1,4 +1,4 @@
-const { findOne } = require('../models/CourseProgress');
+
 const User= require('../models/User');
 const mailSender = require('../utils/mailSender');
 const bcrypt = require('bcrypt');
@@ -17,7 +17,7 @@ exports.resetPasswordToken = async (req,res)=>{
             })
         }
         // generate reset password token
-        const token = crypto.randomUUID(); 
+        const token = crypto.randonBytes(20).toString('hex'); 
 
         // update user by adding token and expiration time
         const updatedDetails = await User.findOneAndUpdate({email:email},{
@@ -71,7 +71,7 @@ exports.resetPassword = async (req,res)=>{
         }
 
         // checking token expiry
-        if(userDetails.resetPasswordExpires < Date.now){
+        if(userDetails.resetPasswordExpires > Date.now){
             return res.json({
                 success:false,
                 message:'Token is Expired, please regenerate your token'

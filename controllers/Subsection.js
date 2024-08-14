@@ -34,7 +34,7 @@ exports.createSubsection = async (req,res)=>{
             $push:{
                 subSection:subSectionDetails._id,
             }
-        },{new:true}); // ToDo: populate the sectoin
+        },{new:true}).populate('subSection'); // ToDo: populate the sectoin
 
         res.status(200).json({
             success:true,
@@ -102,6 +102,6 @@ exports.deleteSubsection = async (req,res)=>{
             success:false,
             message:'Something went wrong while deletion of Subsection'
         })
-        
+         
     }
 }

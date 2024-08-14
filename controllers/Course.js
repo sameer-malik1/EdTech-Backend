@@ -117,7 +117,51 @@ exports.showAllCourses = async (req,res) =>{
         console.log(error);
         res.status(500).json({
             success:false,
-            message:'something went wring while fetching the courses '
+            message:'something went wring while fetching the courses ',
+            error:error.message,
         })
+    }
+}
+
+// get an specific course
+exports.getCourseDetails = async (req,res)=>{
+    try {
+        const {courseId} = req.body;
+        const courseDetails = await Course.findById({_id:courseId}).populate({
+            path:'instructor',
+            populate:{
+                path:'additionalDetails'
+            }
+        })
+        .populate('ratingAndReviews')
+        .populate('category')
+        .populate({
+            path:'courseContent',
+            populate:{
+                path:'subSection'
+            }
+        }).exec();
+
+        if(!courseDetails){
+            return res.status(400).json({
+                success:false,
+                message:'Course not found'
+            })
+        }
+
+        // return response
+        res.status(200).json({
+            success:true,
+            message:'Course details fetched successfully.',
+            data:courseDetails,
+        })
+        
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success:false,
+            message:error.message,
+        })
+        
     }
 }
