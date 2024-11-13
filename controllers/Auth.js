@@ -15,13 +15,17 @@ exports.sendOTP = async (req,res)=>{
         const {email} = req.body;
 
         //check if email already exist or not
-        const checkUserExist = User.findOne({email});
+        const checkUserExist = await User.findOne({email});
+        
         if(checkUserExist){
-            return res.status(400).json({
+           
+            return res.status(401).json({
                 success:false,
                 message:'User already Exist'
             })
         }
+
+
 
         // generate OTP
         let otp = otpGenerator.generate(6,{
@@ -31,28 +35,23 @@ exports.sendOTP = async (req,res)=>{
         });
 
         // checking the otp is unique or not
-        let result = await OTP.findOne({otp:otp});
-        if(result){
-            otp = otpGenerator.generate(6,{
-                upperCaseAlphabets:false,
-                lowerCaseAlphabets:false,
-                specialChars:false
-            });
-            result = await OTP.findOne({otp:otp});
-        }
-
-        // create an entry of OTP into database
-        const payload = {email,otp};
-        const otpBody= await OTP.create(payload);
-        console.log('saved OTP in database ',otpBody);
-
-        // response
-        res.status(200).json({
-            success:true,
-            message:'OTP sent successfully',
-            otp,
-        })
-
+        const result = await OTP.findOne({ otp: otp });
+		console.log("Result is Generate OTP Func");
+		console.log("OTP", otp);
+		console.log("Result", result);
+		while (result) {
+			otp = otpGenerator.generate(6, {
+				upperCaseAlphabets: false,
+			});
+		}
+		const otpPayload = { email, otp };
+		const otpBody = await OTP.create(otpPayload);
+		console.log("OTP Body", otpBody);
+		res.status(200).json({
+			success: true,
+			message: `OTP Sent Successfully`,
+			otp,
+		});
         
 
 
@@ -70,7 +69,7 @@ exports.sendOTP = async (req,res)=>{
 
 
 // sign up
-exports.signUp = async ()=>{
+exports.signUp = async (req,res)=>{
     try {
         //fetch data from request body
         const {firstName,lastName,email,password,confirmPassword,accountType,contactNumber,otp} = req.body;
@@ -90,7 +89,7 @@ exports.signUp = async ()=>{
             })
         }
         // check user already exist or not
-        const checkUserExistance = User.findOne({email});
+        const checkUserExistance = await User.findOne({email});
         if(checkUserExistance){
             return res.status(400).json({
                 success:false,
@@ -106,7 +105,7 @@ exports.signUp = async ()=>{
             success:false,
             message:'OTP not found'
         })
-        }else if(otp !== recentOtp){
+        }else if(otp !== recentOtp[0].otp){
             return res.status(400).json({
             success:false,
             message:'Invalid OTP'
@@ -117,7 +116,7 @@ exports.signUp = async ()=>{
         const hashedPassword = await bcrypt.hash(password,10);
 
         //create entry of profileDetails in DB
-        const profileDetails = Profile.create({
+        const profileDetails = await Profile.create({
             gender:null,
             dateOfBirth:null,
             about:null,
@@ -126,7 +125,7 @@ exports.signUp = async ()=>{
         })
 
         // create account entry into DB
-        const user = User.create({
+        const user = await User.create({
             firstName,
             lastName,
             email,
@@ -140,7 +139,8 @@ exports.signUp = async ()=>{
         // return response
         return res.status(200).json({
             success:true,
-            message:'User created successfully'
+            message:'User created successfully',
+            user,
         })
 
         
@@ -171,7 +171,7 @@ exports.login = async (req,res)=>{
 
         // check if existing user
         const user = await User.findOne({email});
-        if(!existingUser){
+        if(!user){
             return res.status(401).json({
                 success:false,
                 message:'Create Account first to login'
@@ -180,6 +180,7 @@ exports.login = async (req,res)=>{
 
         // compare passwords and generate token
         if(await bcrypt.compare(password,user.password)){
+            console.log("inside password comparing")
             // generate token
             const payload = {
                 email:user.email,
@@ -192,12 +193,15 @@ exports.login = async (req,res)=>{
             user.token = token;
             user.password = undefined;
 
+            console.log("outside password comparision");
+
             // create cookie and send response
             const options = {
                 expires: new Date(Date.now() + 3*24*60*60*1000),
-                httpOnly,
+                httpOnly:true,
 
             }
+            console.log("outside options");
             res.cookie('token',token,options).status(200).json({
                 success:true,
                 token,
