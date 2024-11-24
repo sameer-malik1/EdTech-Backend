@@ -16,6 +16,8 @@ exports.sendOTP = async (req,res)=>{
 
         //check if email already exist or not
         const checkUserExist = await User.findOne({email});
+
+        console.log("email exist: ",checkUserExist);
         
         if(checkUserExist){
            
@@ -53,6 +55,9 @@ exports.sendOTP = async (req,res)=>{
 			otp,
 		});
         
+        await mailSender(otpPayload.email,"Registration OTP",otpPayload.otp);
+
+        
 
 
 
@@ -72,10 +77,10 @@ exports.sendOTP = async (req,res)=>{
 exports.signUp = async (req,res)=>{
     try {
         //fetch data from request body
-        const {firstName,lastName,email,password,confirmPassword,accountType,contactNumber,otp} = req.body;
+        const {firstName,lastName,email,password,confirmPassword,accountType , otp} = req.body;
 
         // validation 
-        if(!firstName || !lastName || !email || !password || !confirmPassword || !contactNumber || !otp){
+        if(!firstName || !lastName || !email || !password || !confirmPassword || !otp ){
             return res.status(403).json({
                 success:false,
                 message:'All fields are required.'
@@ -111,6 +116,7 @@ exports.signUp = async (req,res)=>{
             message:'Invalid OTP'
         })
         }
+        
 
         // hashed password before saving into db
         const hashedPassword = await bcrypt.hash(password,10);
@@ -142,6 +148,8 @@ exports.signUp = async (req,res)=>{
             message:'User created successfully',
             user,
         })
+
+        // await mailSender(user.email,"Title",otp);
 
         
     } catch (error) {

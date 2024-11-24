@@ -13,7 +13,7 @@ const mailSender = async (email,title,body) =>{
 
         // sendMail
         const info = transporter.sendMail({
-            from: "Edu-Notion | by Apna Organization",
+            from: "Edu-Notion | by Malik Organization",
             to:`${email}`,
             subject:`${title}`,
             html:`${body}`
